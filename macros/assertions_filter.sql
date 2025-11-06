@@ -126,23 +126,23 @@ LEN({{ column }}) = 0
 
 {#- Check if both exclude_list and include_list are provided -#}
 {%- if exclude_list is not none and include_list is not none -%}
-    {{
-        exceptions.raise_compiler_error(
-            'exclude_list or include_list must be provided. Not both.'
-            ~ 'Got (exclude_list: ' ~ exclude_list
-            ~ ', include_list: ' ~ include_list ~ ')'
-        )
-    }}
+{{
+exceptions.raise_compiler_error(
+'exclude_list or include_list must be provided. Not both.'
+~ 'Got (exclude_list: ' ~ exclude_list
+~ ', include_list: ' ~ include_list ~ ')'
+)
+}}
 {%- endif -%}
 
-{#- Generate filtering expression  -#}
+{#- Generate filtering expression -#}
 {{- 'NOT ' if reverse else '' -}}
 {%- if include_list is not none -%}
-SIZE(ARRAY_INTERSECT({{ column }}, array('{{ include_list | join("\', \'")}}'))) = 0
+SIZE(FILTER(ARRAY_INTERSECT({{ column }}, array('{{ include_list | join("', '")}}')), x -> x IS NOT NULL)) = 0
 {%- elif exclude_list is not none -%}
-SIZE(ARRAY_EXCEPT({{ column }}, array('{{ exclude_list | join("\', \'")}}'))) = 0
+SIZE(FILTER(ARRAY_EXCEPT({{ column }}, array('{{ exclude_list | join("', '")}}')),x -> x IS NOT NULL)) = 0
 {%- else -%}
-SIZE({{ column }}) = 0
+SIZE(FILTER({{ column }}, x -> x IS NOT NULL)) = 0
 {%- endif -%}
 
 {%- endmacro %}
